@@ -6,20 +6,18 @@ import (
 
 	"github.com/MathHRM/simple_bank/api"
 	db "github.com/MathHRM/simple_bank/db/sqlc"
+	"github.com/MathHRM/simple_bank/util"
 
 	_ "github.com/lib/pq"
 )
 
-
-const (
-	serverAddress = "127.0.0.1:8080"
-
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:senha123@localhost:5432/simple_bank?sslmode=disable"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Deu bosta man, carregou as config nao: ", err)
+	}
+
+	conn, err := sql.Open(config.DBdriver, config.DBsource)
 
 	if err != nil {
 		log.Fatal("Deu erro ai patrion, conectou no sql nao: ", err)
@@ -28,7 +26,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("Deu merda em rodar a api: ", err)
 	}

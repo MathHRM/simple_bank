@@ -5,21 +5,22 @@ import (
 	"log"
 	"os"
 	"testing"
+	"github.com/MathHRM/simple_bank/util"
 
 	_"github.com/lib/pq"
-)
-
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:senha123@localhost:5432/simple_bank?sslmode=disable"
 )
 
 var testQueries *Queries
 var testDB *sql.DB
 
 func TestMain(m *testing.M) {
-	var err error
-	testDB, err = sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig("../..")
+
+	if err != nil {
+		log.Fatal("Deu bosta man, carregou as config nao: ", err)
+	}
+
+	testDB, err = sql.Open(config.DBdriver, config.DBsource)
 
 	if err != nil {
 		log.Fatal("Deu erro ai patrion, conectou nao: ", err)
