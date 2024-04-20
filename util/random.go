@@ -9,7 +9,7 @@ import (
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
 func RandomInt(min, max int64) int64 {
@@ -29,7 +29,21 @@ func RandomString(leng int) string {
 }
 
 func RandomCurrency() string {
-	currencies := []string{"USD", "BRL", "EUR"}
+	currencies := []string{BRL, USD, KWZ}
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
+}
+
+func RandomMoney() int64 {
+	return RandomInt(1, 1000)
+}
+
+func RandomName() string {
+	return RandomString(7)
+}
+
+func RandomEmail(name string) string {
+	emailDomain := []string{"@email.com", "@gmail.net", "@quentemail.br", "@salazard.wizard"}
+	n := len(emailDomain)
+	return name + emailDomain[rand.Intn(n)]
 }
