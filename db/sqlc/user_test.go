@@ -14,12 +14,14 @@ func createRandomUser(t *testing.T) User {
 	name := util.RandomName()
 	lastName := util.RandomName()
 	fullName := fmt.Sprintf("%s %s", name, lastName)
+	hash, err := util.HashPassword( util.RandomString(8) )
+	require.NoError(t, err)
 
 	arg := CreateUserParams{
 		Username:       name,
 		FullName:       fullName,
 		Email:          util.RandomEmail(name),
-		HashedPassword: "senha",
+		HashedPassword: hash,
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)

@@ -1,99 +1,16 @@
 package api
 
 import (
-	"database/sql"
+	"testing"
+	/* "database/sql"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 
 	mockdb "github.com/MathHRM/simple_bank/db/mock"
 	db "github.com/MathHRM/simple_bank/db/sqlc"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require" */
 )
 
-func TestTransfer(t *testing.T) {
-	account := randomAccount()
-
-	testCases := []struct {
-		name          string
-		accountID     int64
-		buildStubs    func(store *mockdb.MockStore)
-		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
-	}{
-		{
-			name:      "OK",
-			accountID: account.ID,
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-					Times(1).
-					Return(account, nil)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recorder.Code)
-				requireBodyMatchAccount(t, recorder.Body, account)
-			},
-		},
-		{
-			name:      "NotFound",
-			accountID: account.ID,
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-					Times(1).
-					Return(db.Account{}, sql.ErrNoRows)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recorder.Code)
-			},
-		},
-		{
-			name:      "MalRequesto",
-			accountID: 0,
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Any()).
-					Times(0)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
-			},
-		},
-		{
-			name:      "MerdaInterna",
-			accountID: account.ID,
-			buildStubs: func(store *mockdb.MockStore) {
-				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-					Times(1).
-					Return(db.Account{}, sql.ErrConnDone)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
-			},
-		},
-	}
-
-	for i := range testCases {
-		tc := testCases[i]
-		
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-	
-		store := mockdb.NewMockStore(ctrl)
-		tc.buildStubs(store)
-	
-		server := NewServer(store)
-		recorder := httptest.NewRecorder()
-	
-		url := fmt.Sprintf("/accounts/%d", tc.accountID)
-		request, err := http.NewRequest(http.MethodGet, url, nil)
-		require.NoError(t, err)
-	
-		server.router.ServeHTTP(recorder, request)
-	
-		tc.checkResponse(t, recorder)
-	}
-}
+func TestTransfer(t *testing.T) {}
