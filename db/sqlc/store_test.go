@@ -10,10 +10,10 @@ import (
 
 func TestTransferTx(t *testing.T) {
 	store := NewStore(testDB)
-	
+
 	// cria duas contas
-	account1 := CreateRandomAccount(t)
-	account2 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 
 	fmt.Println("start => account1: ", account1.Balance, "account2: ", account2.Balance)
 

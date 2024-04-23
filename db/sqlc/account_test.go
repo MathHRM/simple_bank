@@ -10,14 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
-func CreateRandomAccount(t *testing.T) Account {
+func createRandomAccount(t *testing.T) Account {
 	owner := createRandomUser(t)
 
-	arg := CreateAccountParams {
-		Owner: owner.Username,
-		Balance: util.RandomMoney(),
+	arg := CreateAccountParams{
+		Owner:    owner.Username,
+		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
 
@@ -28,14 +26,14 @@ func CreateRandomAccount(t *testing.T) Account {
 	require.Equal(t, arg.Owner, account.Owner)
 	require.Equal(t, arg.Balance, account.Balance)
 	require.Equal(t, arg.Currency, account.Currency)
-	
+
 	require.NotZero(t, account.ID)
 	require.NotZero(t, account.CreatedAt)
 
 	return account
 }
 
-func UpdateAccount(t *testing.T, account Account, args UpdateAccountParams)  {
+func UpdateAccount(t *testing.T, account Account, args UpdateAccountParams) {
 	account2, err := testQueries.UpdateAccount(context.Background(), args)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
@@ -48,11 +46,11 @@ func UpdateAccount(t *testing.T, account Account, args UpdateAccountParams)  {
 }
 
 func TestCreateAccount(t *testing.T) {
-	CreateRandomAccount(t)
+	createRandomAccount(t)
 }
 
 func TestGetAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 	account2, err := testQueries.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, account2)
@@ -65,10 +63,10 @@ func TestGetAccount(t *testing.T) {
 }
 
 func TestUpdateAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 
-	args := UpdateAccountParams {
-		ID: account1.ID,
+	args := UpdateAccountParams{
+		ID:      account1.ID,
 		Balance: util.RandomInt(1, 1000),
 	}
 
@@ -84,7 +82,7 @@ func TestUpdateAccount(t *testing.T) {
 }
 
 func TestDeleteAccount(t *testing.T) {
-	account1 := CreateRandomAccount(t)
+	account1 := createRandomAccount(t)
 	err := testQueries.DeleteAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
@@ -95,20 +93,23 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestListAccounts(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 10; i++ {
-		CreateRandomAccount(t)
+		lastAccount = createRandomAccount(t)
 	}
 
-	args := ListAccountsParams {
-		Limit: 5,
-		Offset: 5,
+	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
+		Limit:  5,
+		Offset: 0,
 	}
 
-	accounts, err := testQueries.ListAccounts(context.Background(), args)
+	accounts, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, accounts, 5)
+	require.NotEmpty(t, accounts)
 
-	for _,account := range accounts {
+	for _, account := range accounts {
 		require.NotEmpty(t, account)
+		require.Equal(t, lastAccount.Owner, account.Owner)
 	}
 }
