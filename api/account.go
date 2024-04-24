@@ -15,7 +15,7 @@ type createAccountRequest struct {
 	Currency string `json:"currency" binding:"required,currency" `
 }
 
-func (s *Server) createAccount(ctx *gin.Context) {
+func (s *Server) createAccount(ctx *gin.Context) { // auth
 	var req createAccountRequest
 
 	err := ctx.ShouldBindJSON(&req)
@@ -51,7 +51,7 @@ type getAccountRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (s *Server) getAccount(ctx *gin.Context) {
+func (s *Server) getAccount(ctx *gin.Context) { // auth
 	var req getAccountRequest
 
 	err := ctx.ShouldBindUri(&req)
@@ -86,7 +86,7 @@ type listAccountsRequest struct {
 	PageSize int32 `json:"page_size" binding:"required,min=2"`
 }
 
-func (s *Server) listAccounts(ctx *gin.Context) {
+func (s *Server) listAccounts(ctx *gin.Context) { // auth
 	var req listAccountsRequest
 
 	err := ctx.ShouldBindJSON(&req)
@@ -121,7 +121,7 @@ type updateAccountRequest struct {
 	Balance int64 `json:"balance" binding:"required,min=1"`
 }
 
-func (s *Server) updateAccount(ctx *gin.Context) {
+func (s *Server) updateAccount(ctx *gin.Context) { // auth
 	var req updateAccountRequest
 
 	err := ctx.ShouldBindJSON(&req)
@@ -130,9 +130,12 @@ func (s *Server) updateAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
 	arg := db.UpdateAccountParams{
 		ID:      req.ID,
 		Balance: req.Balance,
+		Owner: authPayload.Username,
 	}
 
 	accounts, err := s.store.UpdateAccount(ctx, arg)
@@ -153,7 +156,7 @@ type deleteAccountRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
-func (s *Server) deleteAccount(ctx *gin.Context) {
+func (s *Server) deleteAccount(ctx *gin.Context) { // auth
 	var req deleteAccountRequest
 
 	err := ctx.ShouldBindUri(&req)
@@ -161,8 +164,20 @@ func (s *Server) deleteAccount(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	err = s.store.DeleteAccount(ctx, req.ID)
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	args := db.DeleteTxParams {
+		ID: req.ID,
+		Owner: authPayload.Username,
+	}
+
+	err = s.store.DeleteTx(ctx, args)
 	if err != nil {
+		if err == db.ErrNoPermission {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -130,6 +131,7 @@ func (s *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(req.Username)
 	user, err := s.store.GetUser(ctx, req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {

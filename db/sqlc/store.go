@@ -3,12 +3,16 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
+
+var ErrNoPermission error = errors.New("Sem permissão")
 
 type Store interface {
 	Querier
 	TransferTx(ctx context.Context, args TransferTxParams) (TransferTxResult, error)
+	DeleteTx(ctx context.Context, args DeleteTxParams) error
 }
 
 type SQLStore struct {
@@ -67,7 +71,7 @@ func (s *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (Trans
 	var result TransferTxResult
 
 	err := s.execTx(ctx,
-		func (q *Queries) error { // função anonima recebida pela função execTx (transfere entre duas contas)
+		func (q *Queries) error { // função anônima recebida pela função execTx (transfere entre duas contas)
 		var err error
 
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
@@ -122,6 +126,26 @@ func (s *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (Trans
 	})
 
 	return result, err
+}
+
+type DeleteTxParams struct {
+	Owner string `json:"owner"`
+	ID int64 `json:"ID"`
+}
+
+func (s *SQLStore) DeleteTx(ctx context.Context, args DeleteTxParams) error {
+	return s.execTx(ctx, func(q *Queries) error {
+		accountFromID, err := s.GetAccount(ctx, args.ID)
+		if err != nil {
+			return err
+		}
+
+		if accountFromID.Owner != args.Owner {
+			return ErrNoPermission
+		}
+
+		return s.DeleteAccount(ctx, args.ID)
+	})
 }
 
 func addMoney(
