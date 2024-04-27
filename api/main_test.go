@@ -18,7 +18,7 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 	}
 
 	server, err := NewServer(config, store)
-	require.NoError(t, err)
+	require.NoError(t, err) 
 	return server
 }
 

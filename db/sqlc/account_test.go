@@ -68,6 +68,7 @@ func TestUpdateAccount(t *testing.T) {
 	args := UpdateAccountParams{
 		ID:      account1.ID,
 		Balance: util.RandomInt(1, 1000),
+		Owner: account1.Owner,
 	}
 
 	account2, err := testQueries.UpdateAccount(context.Background(), args)
