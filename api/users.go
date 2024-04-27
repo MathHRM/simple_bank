@@ -2,13 +2,13 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
 	db "github.com/MathHRM/simple_bank/db/sqlc"
 	"github.com/MathHRM/simple_bank/util"
 	"github.com/gin-gonic/gin"
-	"github.com/lib/pq"
 )
 
 type createUserRequest struct {
@@ -60,11 +60,9 @@ func (s *Server) createUser(ctx *gin.Context) {
 
 	user, err := s.store.CreateUser(ctx, arg)
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			switch pqErr.Code.Name() {
-			case "unique_violation":
-				ctx.JSON(http.StatusForbidden, errorResponse(err))
-			}
+		if errors.Is(err, db.ErrUniqueViolation) {
+			ctx.JSON(http.StatusForbidden, errorResponse(err))
+			return
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -79,7 +77,7 @@ func (s *Server) createUser(ctx *gin.Context) {
 		CreatedAt: user.CreatedAt,
 	}
 
-	ctx.JSON(http.StatusOK, userResponse)
+	ctx.JSON(http.StatusOK, userResponse) 
 }
 
 type getUserRequest struct {

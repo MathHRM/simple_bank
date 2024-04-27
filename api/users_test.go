@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-
-
 type eqCreateUserParamsMatcher struct {
 	arg      db.CreateUserParams
 	password string
@@ -61,16 +59,16 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "OK",
 			body: gin.H{
-				"username": user.Username,
+				"username":  user.Username,
 				"full_name": user.FullName,
-				"email": user.Email,
-				"password": password,
+				"email":     user.Email,
+				"password":  password,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateUserParams{
-					Username:    user.Username,
+					Username: user.Username,
 					FullName: user.FullName,
-					Email:  user.Email,
+					Email:    user.Email,
 				}
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(arg, password)).
@@ -83,18 +81,36 @@ func TestCreateUser(t *testing.T) {
 			},
 		},
 		{
+			name: "DuplicateUsername",
+			body: gin.H{
+				"username":  user.Username,
+				"password":  password,
+				"full_name": user.FullName,
+				"email":     user.Email,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.User{}, db.ErrUniqueViolation)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusForbidden, recorder.Code)
+			},
+		},
+		{
 			name: "bado requesto",
 			body: gin.H{
-				"username": "#",
+				"username":  "#",
 				"full_name": "#",
-				"email": "#",
-				"password": "#",
+				"email":     "#",
+				"password":  "#",
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateUserParams{
-					Username:    user.Username,
-					FullName: user.FullName,
-					Email:  user.Email,
+					Username:       user.Username,
+					FullName:       user.FullName,
+					Email:          user.Email,
 					HashedPassword: user.HashedPassword,
 				}
 				store.EXPECT().
@@ -108,16 +124,16 @@ func TestCreateUser(t *testing.T) {
 		{
 			name: "interno erro",
 			body: gin.H{
-				"username": user.Username,
+				"username":  user.Username,
 				"full_name": user.FullName,
-				"email": user.Email,
-				"password": password,
+				"email":     user.Email,
+				"password":  password,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateUserParams{
-					Username:    user.Username,
-					FullName: user.FullName,
-					Email:  user.Email,
+					Username:       user.Username,
+					FullName:       user.FullName,
+					Email:          user.Email,
 					HashedPassword: user.HashedPassword,
 				}
 				store.EXPECT().
@@ -221,7 +237,7 @@ func TestLoginUserAPI(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetUser(gomock.Any(), gomock.Any()).
-					Times(0).
+					Times(1).
 					Return(db.User{}, sql.ErrConnDone)
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
@@ -271,7 +287,6 @@ func TestLoginUserAPI(t *testing.T) {
 		})
 	}
 }
-
 
 func randomUser(t *testing.T) (user db.User, password string) {
 	password = util.RandomString(8)

@@ -30,7 +30,7 @@ func main() {
 	}
 
 	err = server.Start(config.ServerAddress)
-	if err != nil {
+	if err != nil { 
 		log.Fatal("Deu merda em rodar a api: ", err)
 	}
 }

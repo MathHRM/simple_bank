@@ -44,7 +44,7 @@ func (s *Server) setupRouter() {
 	router := gin.Default()
 
 	router.POST("/users", s.createUser)
-	router.GET("/users/login", s.loginUser)
+	router.POST("/users/login", s.loginUser)
 
 	authRouter := router.Group("/").Use( authMiddleware(s.tokenMaker) )
 

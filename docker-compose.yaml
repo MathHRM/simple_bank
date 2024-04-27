@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=senha123
+      - POSTGRES_USER=root
+      - POSTGRES_DB=simple_bank
+    networks:
+      - simplebank-network
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - simplebank-network
+    environment:
+      - DB_SOURCE=postgresql://root:senha123@postgres:5432/simple_bank?sslmode=disable
+    depends_on:
+      - postgres   
+    entrypoint:
+      [
+        "/app/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: [ "/app/main" ]
+
+networks:
+  simplebank-network: {}
